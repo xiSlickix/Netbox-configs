@@ -1,0 +1,16 @@
+# ARG NETBOX_VERSION
+FROM netboxcommunity/netbox:latest
+COPY ./plugin_requirements.txt /opt/netbox/
+RUN /usr/local/bin/uv pip install -r /opt/netbox/plugin_requirements.txt
+RUN sed -i 's/settings\.VERSION/settings\.RELEASE\.version/g' /opt/netbox/venv/lib/python3.12/site-packages/netbox_topology_views/template_content.py
+# These lines are only required if your plugin has its own static files.
+COPY configuration/configuration.py /etc/netbox/config/configuration.py
+COPY configuration/plugins.py /etc/netbox/config/plugins.pyi
+RUN . /opt/netbox/venv/bin/activate
+RUN DEBUG="true" SECRET_KEY="dummydummydummydummydummydummydummydummydummydummy" /opt/netbox/venv/bin/python /opt/netbox/netbox/manage.py collectstatic --no-input
+# WORKDIR /opt/netbox
+RUN mkdir -p /opt/netbox/netbox/static/netbox_topology_views/img
+# COPY ./plugin_requirements.txt /opt/netbox/
+# RUN ln -s /usr/bin/pip3 /opt/netbox/venv/bin/pip
+# RUN . /opt/netbox/venv/bin/activate
+# RUN . /opt/netbox/venv/bin/pip install  --no-warn-script-location -r /opt/netbox/plugin_requirements.txt
